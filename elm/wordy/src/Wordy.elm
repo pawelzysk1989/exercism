@@ -10,43 +10,29 @@ type Expr
     | Divide Int
 
 
-toExpr : String -> Int -> Expr
-toExpr opr =
-    case opr of
-        "plus" ->
-            Add
-
-        "minus" ->
-            Subtract
-
-        "multiplied by" ->
-            Multiply
-
-        _ ->
-            Divide
-
-
 exprToFunction : Expr -> (Int -> Int)
-exprToFunction expr =
-    \arg ->
-        case expr of
-            Add int ->
-                arg + int
+exprToFunction expr arg =
+    case expr of
+        Add int ->
+            arg + int
 
-            Subtract int ->
-                arg - int
+        Subtract int ->
+            arg - int
 
-            Multiply int ->
-                arg * int
+        Multiply int ->
+            arg * int
 
-            Divide int ->
-                arg // int
+        Divide int ->
+            arg // int
 
 
 solve : Int -> List Expr -> Int
 solve initValue expressions =
-    initValue
-        |> List.foldr ((>>) << exprToFunction) identity expressions
+    let
+        composed =
+            List.foldr ((>>) << exprToFunction) identity expressions
+    in
+    composed initValue
 
 
 myInt : Parser Int
@@ -59,27 +45,26 @@ myInt =
         ]
 
 
-operation : Parser String
-operation =
-    getChompedString <|
-        oneOf
-            [ succeed ()
-                |. keyword "plus"
-            , succeed ()
-                |. keyword "minus"
-            , succeed ()
-                |. keyword "multiplied by"
-            , succeed ()
-                |. keyword "divided by"
-            ]
-
-
 expression : Parser Expr
 expression =
-    succeed toExpr
-        |= operation
-        |. spaces
-        |= myInt
+    oneOf
+        [ succeed Add
+            |. keyword "plus"
+            |. spaces
+            |= myInt
+        , succeed Subtract
+            |. keyword "minus"
+            |. spaces
+            |= myInt
+        , succeed Multiply
+            |. keyword "multiplied by"
+            |. spaces
+            |= myInt
+        , succeed Divide
+            |. keyword "divided by"
+            |. spaces
+            |= myInt
+        ]
 
 
 parser : Parser Int
